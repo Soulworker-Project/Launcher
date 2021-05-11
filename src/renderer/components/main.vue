@@ -1,7 +1,10 @@
 <template>
   <div class="wrapper" id="wrapper">
       {{ error.message }}
-      <div class="progress"> <v-progress-linear value="100" height="20" color="green" > Everything ready! </v-progress-linear> </div>
+      <div class="progress">
+        <div class="current" v-if="progress.downloading"> Currently Downloading: {{progress.downloading}} </div>
+        <v-progress-linear :value="percent" height="20" color="green" >  {{message}} </v-progress-linear> 
+      </div>
       <div v-if="newestVersion == currentVersion">
         <div class="controls">
           <v-btn class="launch" @click="launchGame()" color="primary" :disabled="game.running" title="Launch Game">Launch Game</v-btn>
@@ -37,7 +40,8 @@ export default {
       progress: {
         message: "Everything ready!",
         current: 0,
-        max: 0
+        max: 0,
+        downloading: "datas/datav12.v"
       },
       selectedServer: {
         ip: "",
@@ -61,6 +65,17 @@ export default {
     },
     gamepath(){
       return localStorage.getItem('game_path')
+    },
+    percent(){
+      if(this.progress.current == 0 && this.progress.max == 0) return 100;
+      var p = Math.round(((this.progress.current / this.progress.max) * 100) * 10) / 10
+      if(p > 100) p = 100;
+      if(p !== 0) return p;
+      return undefined
+    },
+    message(){
+      if(this.percent && this.percent !== 100) return `${this.percent}%`;
+      return "Everything done!"
     }
   },
   methods: {
@@ -132,4 +147,9 @@ export default {
   top: 0%;
 }
 
+.current {
+  color: white;
+  background-color: rgba(0, 0, 0, 0.5);
+  width: 40%;
+}
 </style>
