@@ -1,33 +1,37 @@
 <template>
-  <div class="wrapper" id="wrapper">
-      {{ error.message }}
+  <div class="wrapper" id="wrapper" v-if="refresh">
+      <div class="notifications" v-for="notification, index in notifications" :key="index" :style="`right: ${notification.position}%;`">
+         <v-alert class="notification" v-if="notification.visible" :dismissible="notification.dismiss" :type="notification.type"> {{notification.text}} </v-alert>
+      </div>
       <div class="progress">
-        <div class="current" v-if="progress.downloading"> Currently Downloading: {{progress.downloading}} </div>
+        <div class="current" v-if="progress.downloading"> {{progress.downloading}} </div>
         <v-progress-linear :value="percent" height="20" color="green" >  {{message}} </v-progress-linear> 
       </div>
-      <div v-if="newestVersion == currentVersion">
+      <div v-if="gamepath">
         <div class="controls">
-          <v-btn class="launch" @click="launchGame()" color="primary" :disabled="game.running" title="Launch Game">Launch Game</v-btn>
+          <v-btn class="launch" @click="launchGame()" color="primary" :disabled="game.running || install.installing" title="Launch Game">Launch Game</v-btn>
           <v-btn class="settings" color="primary" v-if="!game.emitter" title="Settings"> <v-icon> settings </v-icon> </v-btn>
           <v-btn class="kill" @click="killGame()" v-if="game.emitter" color="red" title="Terminate Game"> <v-icon> close </v-icon> </v-btn>
         </div>
       </div>
-      <div class="install" v-if="false">
+      <div class="install" v-if="!gamepath">
         <div class="controls">
-          <v-btn class="install" color="primary"> Install Game </v-btn>
-          <v-btn @click="input()" color="primary"> Already Installed? </v-btn>
+          <v-btn class="install" color="primary" @click="install.open = true"> Install Game </v-btn>
+          <v-btn @click="input()" color="primary" title="Already Installed?"> <v-icon> folder_open </v-icon> </v-btn>
         </div>
       </div>
-      <div class="installer" v-if="false">
-        <Installer/>
+      <div class="installer" v-if="install.open">
+        <div class="installer_underlay" @click="install.open = false"> </div>
+        <Installer @path="startInstall($event)"/>
       </div>
   </div>
 </template>
 
 <script>
-
 import { startGame } from "../../main/plugins/gamehelper.js";
+import { checkGame, downloadGame } from "../../main/plugins/downloadhelper";
 import Installer from './installer';
+import axios from 'axios'
 
 export default {
   name: "Main",
@@ -36,12 +40,19 @@ export default {
   },
   data() {
     return {
+      manifest: undefined,
+      refresh: true,
+      install: {
+        open: false,
+        installing: false,
+      },
       serverList: [],
       progress: {
-        message: "Everything ready!",
         current: 0,
         max: 0,
-        downloading: "datas/datav12.v"
+        downloading: undefined,
+        total: 0,
+        done: 0
       },
       selectedServer: {
         ip: "",
@@ -52,8 +63,10 @@ export default {
       },
       game: {
         emitter: undefined,
-        running: false
-      }
+        running: false,
+        gamepath: undefined
+      },
+      notifications: [],
     }
   },
   computed: {
@@ -64,7 +77,7 @@ export default {
 
     },
     gamepath(){
-      return localStorage.getItem('game_path')
+      return localStorage.getItem('game_path') || this.game.gamepath
     },
     percent(){
       if(this.progress.current == 0 && this.progress.max == 0) return 100;
@@ -74,11 +87,19 @@ export default {
       return undefined
     },
     message(){
+      if(this.install.installing) return `${this.formatBytes(this.progress.done, 2)} / ${this.formatBytes(this.progress.total, 2)}`
       if(this.percent && this.percent !== 100) return `${this.percent}%`;
+      if(!this.gamepath) return "No Gameclient found"
       return "Everything done!"
     }
   },
   methods: {
+    refreshdata(){
+      this.refresh = false;
+      this.$nextTick(() => {
+        this.refresh = true;
+      })
+    },
     launchGame() {
       this.game.emitter = startGame(this.gamepath, "87.237.52.46", "10000");
       this.game.running = true;
@@ -105,10 +126,127 @@ export default {
       document.body.removeChild(input)
     },
     setFolder(event) {
+      this.game.gamepath = event.target.files[0].path
       localStorage.setItem('game_path', event.target.files[0].path)
-    }
+      this.refreshdata();
+      this.checkgame();
+    },
+    checkgame(){
+        if(this.gamepath) checkGame(this.gamepath, this.manifest).then((game) => {
+          this.install.installing = true;
+          game.emit("start", true);
+          game.on('sum', (data) => {
+            this.progress.max = data;
+          })
+          game.on('current', (data) => {
+            this.progress.current = data;
+          })
+          game.on('check', (data) => {
+            this.progress.downloading = `Currently Checking: ${data}`
+          })
+          game.on('download', (data) => {
+            this.progress.downloading = `Currently Repairing: ${data}`
+          })
+          game.on('progress', (data) => {
+            this.progress.total = data.total;
+            this.progress.done = data.done
+            console.log(data);
+          })
+          game.on('done', (data) => {
+            this.progress.downloading = undefined;
+            this.progress.current = this.progress.max;
+            this.install.installing = false;
+            this.createNotification(false, 50, 10000, 'success', 'Game is ready to play!');
+          })
+          game.on('err', (data) => {
+            this.createNotification(false, 50, 10000, 'error', data);
+          })
+      });
+    },
+    startInstall(path) {
+      this.game.gamepath = path
+      localStorage.setItem('game_path', path)
+      this.install.open = false;
+      this.install.installing = true;
+
+      downloadGame(path, this.manifest).then((game) => {
+          game.emit("start", true);
+          game.on('sum', (data) => {
+            this.progress.max = data;
+          })
+          game.on('current', (data) => {
+            this.progress.current = data;
+          })
+          game.on('download', (data) => {
+            this.progress.downloading = `Currently Downloading: ${data}`
+          })
+          game.on('done', (data) => {
+            this.progress.downloading = undefined;
+            this.progress.current = this.progress.max;
+            this.install.installing = false;
+            this.createNotification(false, 50, 10000, 'success', 'Installed Game successfully!');
+          })
+          game.on('progress', (data) => {
+            this.progress.total = data.total;
+            this.progress.done = data.done
+            console.log(data);
+          })
+          game.on('err', (data) => {
+            this.createNotification(false, 50, 10000, 'error', data);
+          })
+      })
+    },
+    createNotification(dismissable, slideDuration, duration, type, message){
+    var pos = -10;
+    this.notifications.push({
+      dismiss: dismissable,
+      position: pos,
+      type: type,
+      text: message,
+      visible: true
+    })
+    var i = setInterval(() => {
+      var move = 2/slideDuration;
+      this.notifications.forEach((notification) => {
+        if (notification.text == message && notification.dismiss == dismissable 
+            && notification.type == type && notification.position == pos) {
+            pos = pos + move;
+            notification.position = pos;
+            if(pos >= 2){
+              clearInterval(i);
+            }
+        }
+      })
+    }, 1);
+    var t = setTimeout(() => {
+      var j = setInterval(() => {
+      var move = 5/slideDuration;
+      this.notifications.forEach((notification) => {
+        if (notification.text == message && notification.dismiss == dismissable 
+            && notification.type == type && notification.position == pos) {
+            pos -= move;
+            notification.position = pos;
+            if(pos <= -10){
+              clearInterval(j);
+              notification.visible = false;
+            }
+        }
+      })
+    }, 1);
+    }, slideDuration + duration);
+  },
+  formatBytes(a,b=2){if(0===a)return"0 Bytes";const c=0>b?0:b,d=Math.floor(Math.log(a)/Math.log(1024));return parseFloat((a/Math.pow(1024,d)).toFixed(c))+" "+["Bytes","KB","MB","GB","TB","PB","EB","ZB","YB"][d]},
+
   },
   created() {
+    axios.get(`http://46.228.199.84:3000/manifest`)
+    .catch((error) => {
+      this.createNotification(false, 50, 10000, 'error', error);
+    })
+    .then((res) => {
+      this.manifest = res.data;
+      this.checkgame();
+    })
   }
 };
 </script>
@@ -137,12 +275,18 @@ export default {
 }
 
 .installer {
-  z-index: 100;
   position: fixed;
-
   width: 100%;
   height: 100%;
 
+  left: 0%;
+  top: 0%;
+}
+.installer_underlay {
+  z-index: 9;
+  position: fixed;
+  width: 100%;
+  height: 100%;
   left: 0%;
   top: 0%;
 }
@@ -151,5 +295,12 @@ export default {
   color: white;
   background-color: rgba(0, 0, 0, 0.5);
   width: 40%;
+}
+.notifications {
+  position: fixed;
+  margin-top: 1%;
+  z-index: 110;
+  width: auto;
+  height: 10%;
 }
 </style>
