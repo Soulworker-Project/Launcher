@@ -9,7 +9,7 @@
       </div>
       <div v-if="gamepath">
         <div class="controls">
-          <v-btn class="launch" @click="launchGame()" color="primary" :disabled="game.running || install.installing" title="Launch Game">Launch Game</v-btn>
+          <v-btn class="launch" @click="launchGame()" color="primary" :disabled="game.running || install.installing || !selectedServer" title="Launch Game">Launch Game</v-btn>
           <v-btn class="settings" color="primary" v-if="!game.emitter" title="Settings"> <v-icon> settings </v-icon> </v-btn>
           <v-btn class="kill" @click="killGame()" v-if="game.emitter" color="red" title="Terminate Game"> <v-icon> close </v-icon> </v-btn>
         </div>
@@ -24,6 +24,7 @@
         <div class="installer_underlay" @click="install.open = false"> </div>
         <Installer @path="startInstall($event)"/>
       </div>
+      <ServerList @server="selectServer($event);"/>
   </div>
 </template>
 
@@ -31,12 +32,14 @@
 import { startGame } from "../../main/plugins/gamehelper.js";
 import { checkGame, downloadGame } from "../../main/plugins/downloadhelper";
 import Installer from './installer';
+import ServerList from './serverlist'
 import axios from 'axios'
 
 export default {
   name: "Main",
   components: {
-    Installer
+    Installer,
+    ServerList
   },
   data() {
     return {
@@ -54,10 +57,7 @@ export default {
         total: 0,
         done: 0
       },
-      selectedServer: {
-        ip: "",
-        port: ""
-      },
+      selectedServer: undefined,
       error: {
         message: null
       },
@@ -90,6 +90,7 @@ export default {
       if(this.install.installing) return `${this.formatBytes(this.progress.done, 2)} / ${this.formatBytes(this.progress.total, 2)}`
       if(this.percent && this.percent !== 100) return `${this.percent}%`;
       if(!this.gamepath) return "No Gameclient found"
+      if(!this.selectedServer) return "Please Select a Server";
       return "Everything done!"
     }
   },
@@ -101,12 +102,16 @@ export default {
       })
     },
     launchGame() {
-      this.game.emitter = startGame(this.gamepath, "87.237.52.46", "10000");
+      this.game.emitter = startGame(this.gamepath, this.selectedServer.ip, this.selectedServer.port);
       this.game.running = true;
       this.game.emitter.once('stop', () => {
         this.game.running = false;
         this.game.emitter = undefined;
       })
+    },
+    selectServer(server){
+      this.selectedServer = server;
+      localStorage.setItem('selected', JSON.stringify(server))
     },
     killGame(){
       if(this.game.emitter) {
@@ -150,7 +155,6 @@ export default {
           game.on('progress', (data) => {
             this.progress.total = data.total;
             this.progress.done = data.done
-            console.log(data);
           })
           game.on('done', (data) => {
             this.progress.downloading = undefined;
@@ -189,7 +193,6 @@ export default {
           game.on('progress', (data) => {
             this.progress.total = data.total;
             this.progress.done = data.done
-            console.log(data);
           })
           game.on('err', (data) => {
             this.createNotification(false, 50, 10000, 'error', data);
@@ -239,6 +242,8 @@ export default {
 
   },
   created() {
+    this.$vuetify.theme.dark = true;
+    if(localStorage.getItem('selected')) this.selectedServer = JSON.parse(localStorage.getItem('selected'))
     axios.get(`http://46.228.199.84:3000/manifest`)
     .catch((error) => {
       this.createNotification(false, 50, 10000, 'error', error);

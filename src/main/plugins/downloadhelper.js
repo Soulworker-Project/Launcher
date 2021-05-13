@@ -49,7 +49,7 @@ async function downloadGame(gamepath, manifest) {
                 var folder = key + "/"
                 await asyncForEach(sub, async (name, i) => {
                     events.emit("download", folder + name)
-                    var d = await download(baseurl + folder, name, gamepath + folder, sub[name])
+                    var d = await download(baseurl + folder + name, name, gamepath + folder, sub[name])
                     d.on('progress', (data) => {events.emit("progress", data)})
                     d.on('err', (data) => {events.emit("err", data)})
                     await new Promise((resolve) => {d.on('finish', () => {resolve(true)})})
@@ -66,6 +66,7 @@ async function downloadGame(gamepath, manifest) {
                 events.emit('current', current)
             }
         })
+        events.emit("done", true)
     })
     return events;
 }
