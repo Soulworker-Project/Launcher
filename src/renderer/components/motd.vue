@@ -42,7 +42,7 @@ export default {
             var d = new Date(data)
             var date = d.getDate()
             if(date < 10) date = '0' + date;
-            var month = d.getMonth();
+            var month = d.getMonth()+1;
             if(month < 10) month = '0' + month
             var year = d.getFullYear();
             var hour = d.getHours();
