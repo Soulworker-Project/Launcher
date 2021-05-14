@@ -10,7 +10,7 @@
       <div v-if="gamepath">
         <div class="controls">
           <v-btn class="launch" @click="launchGame()" color="primary" :disabled="game.running || install.installing || !selectedServer" title="Launch Game">Launch Game</v-btn>
-          <v-btn class="settings" color="primary" v-if="!game.emitter" title="Settings"> <v-icon> settings </v-icon> </v-btn>
+          <v-btn class="settings" color="primary" v-if="!game.emitter" title="Settings" @click="open_settings = true"> <v-icon> settings </v-icon> </v-btn>
           <v-btn class="kill" @click="killGame()" v-if="game.emitter" color="red" title="Terminate Game"> <v-icon> close </v-icon> </v-btn>
         </div>
       </div>
@@ -25,6 +25,7 @@
         <Installer @path="startInstall($event)"/>
       </div>
       <ServerList @server="selectServer($event);"/>
+      <Settings v-if="open_settings" @close="open_settings = false" @check="checkgame()" @folder="input()" @filechecks="file_checks($event)" :check="install.installing" :file_checking="filechecks"/>
   </div>
 </template>
 
@@ -33,16 +34,19 @@ import { startGame } from "../../main/plugins/gamehelper.js";
 import { checkGame, downloadGame } from "../../main/plugins/downloadhelper";
 import Installer from './installer';
 import ServerList from './serverlist'
+import Settings from './settings'
 import axios from 'axios'
 
 export default {
   name: "Main",
   components: {
     Installer,
-    ServerList
+    ServerList,
+    Settings
   },
   data() {
     return {
+     open_settings: true,
       manifest: undefined,
       refresh: true,
       install: {
@@ -70,6 +74,9 @@ export default {
     }
   },
   computed: {
+    filechecks(){
+      return localStorage.getItem('checking') == 'true'
+    },
     newestVersion() {
 
     },
@@ -95,6 +102,14 @@ export default {
     }
   },
   methods: {
+    file_checks(event) {
+      alert("Currently not Working!")
+      this.open_settings = false;
+      localStorage.setItem('checking', event)
+      this.$nextTick(() => {
+        this.open_settings = true;
+      })
+    },
     refreshdata(){
       this.refresh = false;
       this.$nextTick(() => {
@@ -137,7 +152,7 @@ export default {
       this.checkgame();
     },
     checkgame(){
-        if(this.gamepath) checkGame(this.gamepath, this.manifest).then((game) => {
+        if(this.gamepath && !this.filechecks) checkGame(this.gamepath, this.manifest).then((game) => {
           this.install.installing = true;
           game.emit("start", true);
           game.on('sum', (data) => {
