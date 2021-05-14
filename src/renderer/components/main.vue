@@ -4,7 +4,7 @@
          <v-alert class="notification" v-if="notification.visible" :dismissible="notification.dismiss" :type="notification.type"> {{notification.text}} </v-alert>
       </div>
       <div class="progress">
-        <div class="current" v-if="progress.downloading"> {{progress.downloading}} </div>
+        <div class="c" v-if="progress.downloading"> {{progress.downloading}} </div>
         <v-progress-linear :value="percent" height="20" color="green" >  {{message}} </v-progress-linear> 
       </div>
       <div v-if="gamepath">
@@ -329,8 +329,8 @@ export default {
 
 .current {
   color: white;
-  background-color: rgba(0, 0, 0, 0.5);
-  width: 40%;
+  background-color: rgba(0, 0, 0, 0.8);
+  width: auto;
 }
 .notifications {
   position: fixed;
