@@ -38,7 +38,7 @@ export default {
     color: white;
     position: absolute;
     width: 30%;
-    height: 35%;
+    height: auto;
     top: 30%;
     left: 35%;
     

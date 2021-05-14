@@ -26,6 +26,7 @@
       </div>
       <ServerList @server="selectServer($event);"/>
       <Settings v-if="open_settings" @close="open_settings = false" @check="checkgame()" @folder="input()" @filechecks="file_checks($event)" :check="install.installing" :file_checking="filechecks"/>
+      <MOTD :id="selectedServer.id"/>
   </div>
 </template>
 
@@ -35,6 +36,7 @@ import { checkGame, downloadGame } from "../../main/plugins/downloadhelper";
 import Installer from './installer';
 import ServerList from './serverlist'
 import Settings from './settings'
+import MOTD from './motd';
 import axios from 'axios'
 
 export default {
@@ -42,11 +44,12 @@ export default {
   components: {
     Installer,
     ServerList,
-    Settings
+    Settings,
+    MOTD
   },
   data() {
     return {
-     open_settings: true,
+     open_settings: false,
       manifest: undefined,
       refresh: true,
       install: {
@@ -152,7 +155,7 @@ export default {
       this.checkgame();
     },
     checkgame(){
-        if(this.gamepath && !this.filechecks) checkGame(this.gamepath, this.manifest).then((game) => {
+        if(this.gamepath) checkGame(this.gamepath, this.manifest).then((game) => {
           this.install.installing = true;
           game.emit("start", true);
           game.on('sum', (data) => {
