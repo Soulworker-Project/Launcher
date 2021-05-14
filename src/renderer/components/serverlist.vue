@@ -126,7 +126,7 @@ export default {
     left: 3%;
     top: 3%;
     width: 30%;
-    height: 90%;
+    height: 85%;
     overflow: hidden;
     background-color: rgba(0, 0, 0, 0.7);
 }
