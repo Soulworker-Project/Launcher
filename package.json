@@ -1,12 +1,17 @@
 {
   "name": "soulworker-launcher",
-  "version": "0.0.1",
-  "author": "ScarVite <43887376+ScarVite@users.noreply.github.com>",
-  "description": "Launcher for Soulworker P-Server",
-  "license": null,
+  "version": "1.0.0",
+  "author": "Soulworker Projekt Team",
+  "description": "Launcher for Soulworker P-Servers",
+  "license": "MIT",
   "main": "./dist/electron/main.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Soulworker-Project/Launcher/"
+  },
   "scripts": {
-    "build": "node .electron-vue/build.js && electron-builder",
+    "build": "node .electron-vue/build.js && electron-builder -p always",
+    "builddev": "node .electron-vue/build.js && electron-builder",
     "build:dir": "node .electron-vue/build.js && electron-builder --dir",
     "build:clean": "cross-env BUILD_TARGET=clean node .electron-vue/build.js",
     "build:web": "cross-env BUILD_TARGET=web node .electron-vue/build.js",
@@ -16,8 +21,12 @@
     "pack:renderer": "cross-env NODE_ENV=production webpack --progress --colors --config .electron-vue/webpack.renderer.config.js",
     "postinstall": ""
   },
+  "publish": {
+    "provider": "github",
+    "releaseType": "release"
+  },
   "build": {
-    "productName": "soulworker-launcher",
+    "productName": "Soulworker P-Server Launcher",
     "appId": "me.soulworker.launcher",
     "directories": {
       "output": "build"
@@ -41,19 +50,29 @@
       ]
     },
     "mac": {
-      "icon": "build/icons/icon.icns"
+      "icon": "build/icons/icon.icns",
+      "publish": [
+        "github"
+      ]
     },
     "win": {
-      "icon": "build/icons/icon.ico"
+      "icon": "build/icons/icon.ico",
+      "publish": [
+        "github"
+      ]
     },
     "linux": {
-      "icon": "build/icons"
+      "icon": "build/icons",
+      "publish": [
+        "github"
+      ]
     }
   },
   "dependencies": {
     "axios": "^0.18.0",
     "check-disk-space": "^2.1.0",
     "diskusage": "^1.1.3",
+    "electron-updater": "^4.3.9",
     "fetch-progress": "^1.3.0",
     "md5": "^2.3.0",
     "node-fetch": "^2.6.1",

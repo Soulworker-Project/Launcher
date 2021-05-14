@@ -1,21 +1,31 @@
-# soulworker-launcher
+# Launcher for Soulworker P-Server
 
-> Launcher for Soulworker P-Server
+> Launcher for Soulworker P-Servers
 
-#### Build Setup
+## How to Install The Launcher
+
+Go to this [Site](https://github.com/Soulworker-Project/Launcher/releases/latest) and Download the .exe.
+
+Install The File and you are Done.
+
+#### How to Contribute
 
 ``` bash
+# Clone the Repro
+git clone https://github.com/Soulworker-Project/Launcher.git
+
 # install dependencies
 npm install
 
-# serve with hot reload at localhost:9080
+# Code
+
+# serve with hot reload at localhost:9080 (Opens Automatically)
 npm run dev
 
-# build electron application for production
+# build electron application for production. Please test this before opening a Pull request
 npm run build
-
-
 ```
+And Finally Open A [Pull Request](https://github.com/Soulworker-Project/Launcher/pulls) to you have your code added to the Launcher
 
 ---
 
