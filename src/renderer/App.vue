@@ -9,8 +9,12 @@
 </template>
 
 <script>
+import Axios from 'axios';
 export default {
   name: "soulworker-launcher",
+  created(){
+    Axios.defaults.baseURL = "http://46.228.199.84:3000"
+  }
 };
 </script>
 

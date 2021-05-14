@@ -53,7 +53,7 @@ export default {
         }
     },
     created(){
-        axios.get(`http://46.228.199.84:3000/server/${this.id}`)
+        axios.get(`/server/${this.id}`)
         .catch((error) => {
         })
         .then((data) => {

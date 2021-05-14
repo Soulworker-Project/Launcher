@@ -1,6 +1,7 @@
 const fs = require('fs');
 const { spawn } = require('child_process');
 const EventEmitter = require('events')
+const ini = require('ini')
 
     function startGame (path, ip, port) {
         const eventEmitter = new EventEmitter()
@@ -18,5 +19,17 @@ const EventEmitter = require('events')
         return eventEmitter;
     }
 
+    function getVersion(path) {
+        try {
+            console.log(path)
+            if(!path.endsWith('/')) path = path + '/';
+            var ver = fs.readFileSync(path + 'Ver.ini', 'utf-8')
+            return ini.parse(ver).Client.ver
+        } catch (error) {
+            console.log(error)
+            return 'Unkown'   
+        }
+    }
 
-exports.startGame = startGame;
+
+export {startGame, getVersion}

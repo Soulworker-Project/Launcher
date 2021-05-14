@@ -62,7 +62,7 @@ export default {
         }
     },
     created(){
-        axios.get('http://46.228.199.84:3000/size')
+        axios.get('/size')
         .catch((error) => {
         })
         .then((data) => {

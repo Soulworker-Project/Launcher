@@ -110,7 +110,7 @@ export default {
     created(){
         if(localStorage.getItem('custom')) this.custom_server = JSON.parse(localStorage.getItem('custom'))
         if(localStorage.getItem('favorite')) this.favorite = JSON.parse(localStorage.getItem('favorite'))
-        axios.get('http://46.228.199.84:3000/server')
+        axios.get('/server')
         .catch((error) => {
         })
         .then((data) => {

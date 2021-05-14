@@ -24,6 +24,10 @@
         <div class="installer_underlay" @click="install.open = false"> </div>
         <Installer @path="startInstall($event)"/>
       </div>
+      <div class="version">
+          <div class="client_version"> Client Version: {{currentVersion}} |</div>
+          <div class="server_version"> Server Version: {{newestVersion}} </div>
+      </div>
       <ServerList @server="selectServer($event);"/>
       <Settings v-if="open_settings" @close="open_settings = false" @check="checkgame()" @folder="input()" @filechecks="file_checks($event)" :check="install.installing" :file_checking="filechecks"/>
       <MOTD v-if="selectedServer && selectedServer.id" :id="selectedServer.id"/>
@@ -31,7 +35,7 @@
 </template>
 
 <script>
-import { startGame } from "../../main/plugins/gamehelper.js";
+import { startGame, getVersion } from "../../main/plugins/gamehelper.js";
 import { checkGame, downloadGame } from "../../main/plugins/downloadhelper";
 import Installer from './installer';
 import ServerList from './serverlist'
@@ -74,17 +78,15 @@ export default {
         gamepath: undefined
       },
       notifications: [],
+      newestVersion: 'Unkown'
     }
   },
   computed: {
     filechecks(){
       return localStorage.getItem('checking') == 'true'
     },
-    newestVersion() {
-
-    },
     currentVersion() {
-
+      return getVersion(this.gamepath)
     },
     gamepath(){
       return localStorage.getItem('game_path') || this.game.gamepath
@@ -262,13 +264,19 @@ export default {
   created() {
     this.$vuetify.theme.dark = true;
     if(localStorage.getItem('selected')) this.selectedServer = JSON.parse(localStorage.getItem('selected'))
-    axios.get(`http://46.228.199.84:3000/manifest`)
+    axios.get(`/manifest`)
     .catch((error) => {
       this.createNotification(false, 50, 10000, 'error', error);
     })
     .then((res) => {
       this.manifest = res.data;
       this.checkgame();
+    })
+    axios.get('/version')
+    .catch((error) => {
+    })
+    .then((data) => {
+      this.newestVersion = data.data.ver
     })
   }
 };
@@ -325,5 +333,17 @@ export default {
   z-index: 110;
   width: auto;
   height: 10%;
+}
+.version {
+  position: fixed;
+  top: 0%;
+  left: 5px;
+  font-size: 0.7rem;
+}
+.client_version {
+  display: inline-block;
+}
+.server_version {
+  display: inline-block;
 }
 </style>
