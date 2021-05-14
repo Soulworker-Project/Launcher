@@ -23,7 +23,7 @@ npm install
 npm run dev
 
 # build electron application for production. Please test this before opening a Pull request
-npm run build
+npm run builddev
 ```
 And Finally Open A [Pull Request](https://github.com/Soulworker-Project/Launcher/pulls) to you have your code added to the Launcher
 
