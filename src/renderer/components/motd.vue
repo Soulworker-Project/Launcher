@@ -4,7 +4,21 @@
         <div class="motd_message"> {{server.motd}} </div>
         <hr class="underline">
         <div class="motd_title"> Latest News </div>
-        <div class="news_message" v-for="news, index in server.news" :key="index"> {{news.message}} </div> 
+        <div class="news_container" v-for="news, index in server.news" :key="index"> 
+            <v-menu>
+                <template v-slot:activator="{ on, attrs }">
+                    <v-btn v-bind="attrs" v-on="on" block plain> {{formatTime(news.date)}} </v-btn>
+                </template>
+                <v-list>
+                    <v-list-item>
+                        <v-list-item-title> <div class="motd_title"> {{formatTime(news.date)}} </div> </v-list-item-title>
+                    </v-list-item>
+                    <v-list-item>
+                        <div class="news_message"> {{news.message}} </div>
+                    </v-list-item>
+                </v-list>
+            </v-menu>
+        </div> 
     </div>
 </template>
 
@@ -23,7 +37,20 @@ export default {
 
     },
     methods: {
-
+        formatTime(data) {
+            data = parseInt(data)
+            var d = new Date(data)
+            var date = d.getDate()
+            if(date < 10) date = '0' + date;
+            var month = d.getMonth();
+            if(month < 10) month = '0' + month
+            var year = d.getFullYear();
+            var hour = d.getHours();
+            if(hour < 10) hour = '0' + hour;
+            var minute = d.getMinutes();
+            if(minute < 10) minute =  '0' + minute
+            return `${date}.${month}.${year} ${hour}:${minute}`
+        }
     },
     created(){
         axios.get(`http://46.228.199.84:3000/server/${this.id}`)
@@ -59,8 +86,7 @@ export default {
   border-bottom-style: solid;
 }
 .news_message {
-    font-size: 1.2rem;
+    font-size: 1.1rem;
     text-align: center;
-    text-decoration-line: underline;
 }
 </style>

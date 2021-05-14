@@ -26,7 +26,7 @@
       </div>
       <ServerList @server="selectServer($event);"/>
       <Settings v-if="open_settings" @close="open_settings = false" @check="checkgame()" @folder="input()" @filechecks="file_checks($event)" :check="install.installing" :file_checking="filechecks"/>
-      <MOTD :id="selectedServer.id"/>
+      <MOTD v-if="selectedServer && selectedServer.id" :id="selectedServer.id"/>
   </div>
 </template>
 
