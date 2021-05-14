@@ -26,7 +26,8 @@
       </div>
       <div class="version">
           <div class="client_version"> Client Version: {{currentVersion}} |</div>
-          <div class="server_version"> Server Version: {{newestVersion}} </div>
+          <div class="server_version"> Server Version: {{newestVersion}} |</div>
+          <div class="launcher_version"> Launcher Version: {{ClientVersion}} </div>
       </div>
       <ServerList @server="selectServer($event);"/>
       <Settings v-if="open_settings" @close="open_settings = false" @check="checkgame()" @folder="input()" @filechecks="file_checks($event)" :check="install.installing" :file_checking="filechecks"/>
@@ -37,6 +38,7 @@
 <script>
 import { startGame, getVersion } from "../../main/plugins/gamehelper.js";
 import { checkGame, downloadGame } from "../../main/plugins/downloadhelper";
+import { version } from '../../../package.json';
 import Installer from './installer';
 import ServerList from './serverlist'
 import Settings from './settings'
@@ -87,6 +89,9 @@ export default {
     },
     currentVersion() {
       return getVersion(this.gamepath)
+    },
+    ClientVersion() {
+      return version;
     },
     gamepath(){
       return localStorage.getItem('game_path') || this.game.gamepath
@@ -340,10 +345,7 @@ export default {
   left: 5px;
   font-size: 0.7rem;
 }
-.client_version {
-  display: inline-block;
-}
-.server_version {
+.client_version, .server_version, .launcher_version {
   display: inline-block;
 }
 </style>
