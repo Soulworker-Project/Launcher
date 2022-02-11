@@ -111,7 +111,7 @@
     "material-design-icons-iconfont": "^6.1.0",
     "mini-css-extract-plugin": "0.4.0",
     "node-loader": "^0.6.0",
-    "node-sass": "^4.9.2",
+    "node-sass": "^7.0.0",
     "sass": "^1.32.12",
     "sass-loader": "^7.3.1",
     "style-loader": "^0.21.0",
